@@ -4,7 +4,7 @@
  * Description: Adds Wordfence 2FA compatibility to Ultimate Member login forms.
  * Version: 1.0
  * Author: Justdave IT Consulting LLC
- * Author URI: https://github.com/justdave
+ * Author URI: https://justdaveitconsulting.com
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.2
