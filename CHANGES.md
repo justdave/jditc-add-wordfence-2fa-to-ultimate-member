@@ -1,4 +1,4 @@
-#### 0.1.0 / 2026-07-07
+#### 1.0 / 2026-07-07
 
 * Initial release.
 * Adds Wordfence 2FA compatibility to Ultimate Member login forms.
