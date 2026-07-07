@@ -1,11 +1,19 @@
 <?php
+/**
+ * Wordfence 2FA Ultimate Member integration class.
+ *
+ * @package JDITC\Wordfence_2FA_for_Ultimate_Member
+ */
 
-namespace JDITC\Wordfence_2FA_for_Ultimate_Member\Integration;
+namespace JDITC\Wordfence_2FA_for_Ultimate_Member;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Wordfence 2FA integration for Ultimate Member.
+ */
 class UltimateMember {
 	/**
 	 * Wordfence login security WP_Error codes that UM should surface directly.
@@ -23,6 +31,9 @@ class UltimateMember {
 		'wfls_email_not_verified',
 	);
 
+	/**
+	 * Register Ultimate Member integration hooks.
+	 */
 	public function __construct() {
 		add_filter( 'um_custom_authenticate_error_codes', array( $this, 'add_wordfence_auth_error_codes' ) );
 		add_action( 'um_after_login_fields', array( $this, 'render_wordfence_2fa_fields' ), 20 );
@@ -52,13 +63,13 @@ class UltimateMember {
 			return;
 		}
 
-		$posted_token_value      = filter_input( INPUT_POST, 'wfls-token', FILTER_UNSAFE_RAW );
-		$posted_remember_value   = filter_input( INPUT_POST, 'wfls-remember-device', FILTER_UNSAFE_RAW );
-		$field_id          = 'wfls-token-' . wp_generate_uuid4();
-		$container_id      = 'w2faum-container-' . wp_generate_uuid4();
-		$show_immediately  = is_string( $posted_token_value ) && '' !== $posted_token_value;
-		$remember_selected = is_string( $posted_remember_value ) && '' !== $posted_remember_value;
-		$disabled_attr     = $show_immediately ? '' : 'disabled';
+		$posted_token_value    = filter_input( INPUT_POST, 'wfls-token', FILTER_UNSAFE_RAW );
+		$posted_remember_value = filter_input( INPUT_POST, 'wfls-remember-device', FILTER_UNSAFE_RAW );
+		$field_id              = 'wfls-token-' . wp_generate_uuid4();
+		$container_id          = 'w2faum-container-' . wp_generate_uuid4();
+		$show_immediately      = is_string( $posted_token_value ) && '' !== $posted_token_value;
+		$remember_selected     = is_string( $posted_remember_value ) && '' !== $posted_remember_value;
+		$disabled_attr         = $show_immediately ? '' : 'disabled';
 		?>
 		<div id="<?php echo esc_attr( $container_id ); ?>" class="um-field" data-key="wfls-token" 
 		<?php

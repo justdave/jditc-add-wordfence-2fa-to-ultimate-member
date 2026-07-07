@@ -9,7 +9,10 @@
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Tested up to: 7.0
+ *
+ * @package JDITC\Wordfence_2FA_for_Ultimate_Member
  */
+
 /*
  * Copyright (C) 2026 Justdave IT Consulting LLC
  *
@@ -34,36 +37,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Wordfence_2FA_for_Ultimate_Member {
-	public function __construct() {
-		spl_autoload_register(
-			function ( $class ) {
-				$prefix = __NAMESPACE__ . '\\Wordfence_2FA_for_Ultimate_Member\\';
+require_once __DIR__ . '/classes/class-ultimatemember.php';
 
-				if ( strpos( $class, $prefix ) !== 0 ) {
-					return false;
-				}
-
-				$class = substr( $class, strlen( $prefix ) );
-
-				$file = __DIR__ . '/classes/' . str_replace( '\\', DIRECTORY_SEPARATOR, $class ) . '.php';
-				if ( file_exists( $file ) ) {
-					require $file;
-					return true;
-				}
-
-				return false;
-			}
-		);
-
-		new Wordfence_2FA_for_Ultimate_Member\Integration\UltimateMember();
-	}
-}
-
-global $jditc_w2faum_instance;
-$jditc_w2faum_instance = new Wordfence_2FA_for_Ultimate_Member();
-
-function W2FAUM() {
-	global $jditc_w2faum_instance;
-	return $jditc_w2faum_instance;
-}
+new Wordfence_2FA_for_Ultimate_Member\UltimateMember();
