@@ -5,6 +5,10 @@
 # Generated release artifacts
 /assets
 /readme.txt
-# Other files not meant for the plugin package
-/.markdownlint.json
+# Development environment files that don't need to be in the repository
+/markdownlint.json
 /.vscode
+/vendor
+/composer.json
+/composer.lock
+/phpcs.xml.dist
