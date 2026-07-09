@@ -60,7 +60,7 @@ function add_plugin_meta_links( $plugin_meta, $plugin_file ) {
 
 	$plugin_meta[] = sprintf(
 		'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-		esc_url( 'https://github.com/justdave/jditc-wordfence-2fa-for-ultimate-member/issues' ),
+		esc_url( 'https://github.com/justdave/jditc-add-wordfence-2fa-to-ultimate-member/issues' ),
 		esc_html__( 'Bug Reports & Feature Requests', 'jditc-add-wordfence-2fa-to-ultimate-member' )
 	);
 

@@ -9,4 +9,4 @@ The login flow is designed to work in two steps:
 
 The plugin passes Wordfence login-security errors back through Ultimate Member so the original Wordfence messages remain visible instead of being swallowed by the form wrapper.
 
-Bug reports and feature requests can be filed at the [GitHub repository](https://github.com/justdave/jditc-wordfence-2fa-for-ultimate-member/issues).
+Bug reports and feature requests can be filed at the [GitHub repository](https://github.com/justdave/jditc-add-wordfence-2fa-to-ultimate-member/issues).
