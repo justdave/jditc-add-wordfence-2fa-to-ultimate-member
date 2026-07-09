@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: JDITC Wordfence 2FA for Ultimate Member
+ * Plugin Name: JDITC Add Wordfence 2FA to Ultimate Member
  * Description: Adds Wordfence 2FA compatibility to Ultimate Member login forms.
  * Version: 1.0
  * Author: Justdave IT Consulting LLC
@@ -11,7 +11,7 @@
  * Requires PHP: 8.0
  * Tested up to: 7.0
  *
- * @package JDITC\Wordfence_2FA_for_Ultimate_Member
+ * @package JDITC\Add_Wordfence_2FA_to_Ultimate_Member
  */
 
 /*
@@ -61,7 +61,7 @@ function add_plugin_meta_links( $plugin_meta, $plugin_file ) {
 	$plugin_meta[] = sprintf(
 		'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 		esc_url( 'https://github.com/justdave/jditc-wordfence-2fa-for-ultimate-member/issues' ),
-		esc_html__( 'Bug Reports & Feature Requests', 'jditc-wordfence-2fa-for-ultimate-member' )
+		esc_html__( 'Bug Reports & Feature Requests', 'jditc-add-wordfence-2fa-to-ultimate-member' )
 	);
 
 	return $plugin_meta;
@@ -71,4 +71,4 @@ add_filter( 'plugin_row_meta', __NAMESPACE__ . '\\add_plugin_meta_links', 10, 2 
 
 require_once __DIR__ . '/classes/class-ultimatemember.php';
 
-new Wordfence_2FA_for_Ultimate_Member\UltimateMember();
+new Add_Wordfence_2FA_to_Ultimate_Member\UltimateMember();

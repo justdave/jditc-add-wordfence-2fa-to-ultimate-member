@@ -1,6 +1,6 @@
 {
-    "name": "jditc/wordfence-2fa-for-ultimate-member",
-    "description": "Development tooling for JDITC Wordfence 2FA for Ultimate Member.",
+    "name": "jditc/add-wordfence-2fa-to-ultimate-member",
+    "description": "Development tooling for JDITC Add Wordfence 2FA to Ultimate Member.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require-dev": {

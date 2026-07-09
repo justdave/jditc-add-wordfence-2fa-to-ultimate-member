@@ -22,7 +22,7 @@
 
 set -euo pipefail
 
-PLUGIN_SLUG="jditc-wordfence-2fa-for-ultimate-member"
+PLUGIN_SLUG="jditc-add-wordfence-2fa-to-ultimate-member"
 PLUGIN_FILE="${PLUGIN_SLUG}.php"
 
 if [ ! -e "${PLUGIN_FILE}" ]; then

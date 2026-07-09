@@ -27,5 +27,5 @@ jobs:
         omitNameDuringUpdate: true
         omitPrereleaseDuringUpdate: true
         tag: ${{ steps.lasttag.outputs.tag }}
-        artifacts: "../jditc-wordfence-2fa-for-ultimate-member-${{ steps.lasttag.outputs.tag }}.zip"
+        artifacts: "../jditc-add-wordfence-2fa-to-ultimate-member-${{ steps.lasttag.outputs.tag }}.zip"
         token: ${{ secrets.GITHUB_TOKEN }}

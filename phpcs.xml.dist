@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<ruleset name="JDITC Wordfence 2FA for Ultimate Member">
+<ruleset name="JDITC Add Wordfence 2FA to Ultimate Member">
     <description>Project PHPCS rules for WordPress plugin development.</description>
 
     <arg name="basepath" value="."/>
     <arg name="colors"/>
     <arg value="sp"/>
 
-    <file>jditc-wordfence-2fa-for-ultimate-member.php</file>
+    <file>jditc-add-wordfence-2fa-to-ultimate-member.php</file>
     <file>classes</file>
 
     <exclude-pattern>*/vendor/*</exclude-pattern>
@@ -24,7 +24,7 @@
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
-                <element value="jditc-wordfence-2fa-for-ultimate-member"/>
+                <element value="jditc-add-wordfence-2fa-to-ultimate-member"/>
             </property>
         </properties>
     </rule>
