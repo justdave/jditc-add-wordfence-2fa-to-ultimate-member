@@ -38,6 +38,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'JDITC_W2FA_UM_PATH' ) ) {
+	define( 'JDITC_W2FA_UM_PATH', plugin_dir_path( __FILE__ ) );
+}
+
+if ( ! defined( 'JDITC_W2FA_UM_URL' ) ) {
+	define( 'JDITC_W2FA_UM_URL', plugin_dir_url( __FILE__ ) );
+}
+
 /**
  * Add plugin meta links on the Installed Plugins page.
  *

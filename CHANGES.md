@@ -1,3 +1,7 @@
+#### unreleased changes
+
+* Move inline Javascript to standalone js files to reduce complexity.
+
 #### 1.0 / 2026-07-07
 
 * Initial release.
