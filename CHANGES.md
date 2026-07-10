@@ -1,4 +1,4 @@
-#### unreleased changes
+#### 1.0.1 / 2026-07-09
 
 * Move inline Javascript to standalone js files to reduce complexity.
 * Rename plugin to "JDITC Add Wordfence 2FA to Ultimate Member" and slug to "jditc-add-wordfence-2fa-to-ultimate-member" for WordPress.org compliance.
