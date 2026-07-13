@@ -16,11 +16,11 @@ jobs:
       id: lasttag
     - name: Create generated assets and Zip file
       run: /bin/bash ${PWD}/.github/bin/build-package.sh "${{ steps.lasttag.outputs.tag }}"
-    #- name: Post generated assets to WordPress.org Plugin Directory
-    #  uses: 10up/action-wordpress-plugin-deploy@stable
-    #  env:
-    #    SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-    #    SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+    - name: Post generated assets to WordPress.org Plugin Directory
+      uses: 10up/action-wordpress-plugin-deploy@stable
+      env:
+        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
     - name: Post Zip file to GitHub Release
       uses: ncipollo/release-action@v1
       with:

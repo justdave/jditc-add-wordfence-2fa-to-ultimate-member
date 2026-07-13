@@ -1,5 +1,7 @@
 #### Unreleased changes
 
+* Update release process to push to WordPress Plugin Directory.
+
 #### 1.0.1 / 2026-07-09
 
 * Move inline Javascript to standalone js files to reduce complexity.
