@@ -1,4 +1,4 @@
-#### unreleased changes
+#### 1.1 / 2026-08-12
 
 * Added support for passkeys that was just added in WordFence 9.0.
 * Added a Security tab to the UM Accounts page which contains the 2FA and Passkey setup if it's enabled, so end users can actually set them up.
