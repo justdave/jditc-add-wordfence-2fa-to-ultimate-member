@@ -1,3 +1,9 @@
+#### unreleased changes
+
+* New features:
+* Bug fixes:
+* Under the hood:
+
 #### 1.1.1 / 2026-08-12
 
 * Clean up PHPCS warnings (code stability)
