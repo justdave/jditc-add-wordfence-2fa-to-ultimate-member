@@ -1,12 +1,9 @@
 # JDITC Add Wordfence 2FA to Ultimate Member
 
-This WordPress plugin adds Wordfence 2FA compatibility to Ultimate Member login forms. It keeps Ultimate Member in control of the form UX while deferring credential validation to Wordfence’s own login security flow when a second factor is required.
+This WordPress plugin adds support for Wordfence Security login methods such as 2FA (second factor authentication) and Passkeys to Ultimate Member login forms. It keeps Ultimate Member in control of the form UX while deferring credential validation to Wordfence’s own login security flow when a second factor is required or a Passkey is used.
 
-The login flow is designed to work in two steps:
+You must have both Ultimate Member and Wordfence (or Wordfence Security) installed to use this.
 
-1. The user submits their username and password through the Ultimate Member login form.
-2. If Wordfence requires a second factor, the plugin switches the form into token-entry mode and prompts for the Wordfence 2FA code.
-
-The plugin passes Wordfence login-security errors back through Ultimate Member so the original Wordfence messages remain visible instead of being swallowed by the form wrapper.
+A Security panel is added to the Accounts page in Ultimate Member to allow end users to set up their 2FA or Passkeys, if you have enabled them to.
 
 Bug reports and feature requests can be filed at the [GitHub repository](https://github.com/justdave/jditc-add-wordfence-2fa-to-ultimate-member/issues).

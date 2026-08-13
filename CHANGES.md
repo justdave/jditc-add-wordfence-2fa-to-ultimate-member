@@ -1,8 +1,6 @@
 #### unreleased changes
 
-* New features:
-* Bug fixes:
-* Under the hood:
+* Updated screenshots and text description for plugin directory to include Passkey support.
 
 #### 1.1.1 / 2026-08-12
 

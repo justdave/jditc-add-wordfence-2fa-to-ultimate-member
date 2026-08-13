@@ -8,4 +8,4 @@ Requires PHP: %%requiresphp%%
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-%%pluginname%% integrates Wordfence two-factor authentication into Ultimate Member login forms.
+%%pluginname%% integrates Wordfence two-factor authentication and Passkeys into Ultimate Member login forms.
