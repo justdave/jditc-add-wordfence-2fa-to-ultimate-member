@@ -1,6 +1,6 @@
-#### unreleased changes
+#### 1.1.1 / 2026-08-12
 
-* Stability fixes.
+* Clean up PHPCS warnings (code stability)
 
 #### 1.1 / 2026-08-12
 
