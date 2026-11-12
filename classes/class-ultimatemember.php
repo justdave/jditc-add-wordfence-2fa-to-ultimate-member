@@ -288,12 +288,27 @@ class UltimateMember {
 	 * @return bool
 	 */
 	private function passkey_api_available() {
-		$controller = '\\WordfenceLS\\Controller_Passkey';
-		return $this->is_wordfence_login_security_available()
+		$controller    = '\\WordfenceLS\\Controller_Passkey';
+		$api_available = $this->is_wordfence_login_security_available()
 			&& class_exists( $controller )
 			&& method_exists( $controller, 'shared' )
 			&& method_exists( $controller::shared(), 'begin_login' )
 			&& method_exists( $controller::shared(), 'finish_and_authenticate_login' );
+
+		if ( ! $api_available ) {
+			return false;
+		}
+
+		// Check if passkeys are enabled in Wordfence settings.
+		$settings_controller = '\\WordfenceLS\\Controller_Settings';
+		if ( class_exists( $settings_controller ) && method_exists( $settings_controller, 'shared' ) ) {
+			$settings = $settings_controller::shared();
+			if ( method_exists( $settings, 'are_passkeys_enabled' ) && ! $settings->are_passkeys_enabled() ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

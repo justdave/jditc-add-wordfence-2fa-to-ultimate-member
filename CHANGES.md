@@ -1,8 +1,6 @@
 #### unreleased changes
 
-* New features:
-* Bug fixes:
-* Under the hood:
+* Passkey button is no longer shown if the feature is not enabled in Wordfence. Thanks to Wes Butler for the bug report!
 
 #### 1.1.2 / 2026-08-12
 
