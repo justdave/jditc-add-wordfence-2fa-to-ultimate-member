@@ -2,14 +2,14 @@
 /**
  * Plugin Name: JDITC Add Wordfence 2FA to Ultimate Member
  * Description: Adds Wordfence 2FA compatibility to Ultimate Member login forms.
- * Version: 1.1.3-dev
+ * Version: 1.1.3
  * Author: Justdave IT Consulting LLC
  * Author URI: https://justdaveitconsulting.com
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.2
  * Requires PHP: 8.0
- * Tested up to: 7.0
+ * Tested up to: 7.1
  *
  * @package JDITC\Add_Wordfence_2FA_to_Ultimate_Member
  */
