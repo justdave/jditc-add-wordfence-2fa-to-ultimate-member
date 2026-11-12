@@ -1,6 +1,7 @@
 #### unreleased changes
 
 * Passkey button is no longer shown if the feature is not enabled in Wordfence. Thanks to Wes Butler for the bug report!
+* Compatibility fix for the "Simple CAPTCHA with Cloudflare Turnstile" plugin. Thanks to Wes Butler for the bug report!
 
 #### 1.1.2 / 2026-08-12
 
