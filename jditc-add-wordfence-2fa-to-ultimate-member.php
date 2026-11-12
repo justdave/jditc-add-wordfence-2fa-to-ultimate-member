@@ -69,34 +69,6 @@ function add_plugin_meta_links( $plugin_meta, $plugin_file ) {
 
 add_filter( 'plugin_row_meta', __NAMESPACE__ . '\\add_plugin_meta_links', 10, 2 );
 
-/**
- * Make Cloudflare Turnstile skip token reset during the Wordfence 2FA flow.
- *
- * The Wordfence 2FA integration with Ultimate Member uses a two-step form submission:
- * first to check credentials with Wordfence, then to complete the login after 2FA verification.
- * Turnstile's automatic token reset after form submission can interfere with this flow,
- * causing the second submission to fail with "Please enter your password". This filter
- * tells Turnstile to skip reset on Ultimate Member login forms that are handling 2FA.
- *
- * @param string $selectors Comma-separated list of form selectors to skip.
- * @return string
- */
-function add_turnstile_skip_forms( $selectors ) {
-	if ( ! is_string( $selectors ) ) {
-		$selectors = '';
-	}
-
-	$um_form_selector = 'form[data-mode="login"]';
-	if ( $selectors ) {
-		$selectors .= ', ' . $um_form_selector;
-	} else {
-		$selectors = $um_form_selector;
-	}
-
-	return $selectors;
-}
-add_filter( 'cfturnstile_token_refresh_skip_forms', __NAMESPACE__ . '\\add_turnstile_skip_forms' );
-
 require_once __DIR__ . '/classes/class-ultimatemember.php';
 
 new Add_Wordfence_2FA_to_Ultimate_Member\UltimateMember();
