@@ -186,12 +186,16 @@ class UltimateMember {
 
 		// Wordfence's unauthenticated passkey endpoint validates its own WebAuthn token.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$token      = isset( $_POST['token'] ) && is_string( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '';
-		$credential = isset( $_POST['credential'] ) ? map_deep( wp_unslash( $_POST['credential'] ), 'sanitize_text_field' ) : null;
-		$remember   = ! empty( $_POST['rememberme'] );
+		$token = isset( $_POST['token'] ) && is_string( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '';
+		if ( isset( $_POST['credential'] ) && is_string( $_POST['credential'] ) ) {
+			$credential = json_decode( wp_unslash( $_POST['credential'] ), true );
+		} else {
+			$credential = isset( $_POST['credential'] ) && is_array( $_POST['credential'] ) ? wp_unslash( $_POST['credential'] ) : null;
+		}
+		$remember = ! empty( $_POST['rememberme'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		if ( is_string( $credential ) ) {
-			$credential = json_decode( $credential, true );
+		if ( is_array( $credential ) ) {
+			$credential = map_deep( $credential, 'sanitize_text_field' );
 		}
 
 		$controller = '\\WordfenceLS\\Controller_Passkey';

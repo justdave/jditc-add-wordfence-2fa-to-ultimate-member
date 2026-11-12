@@ -3,6 +3,7 @@
 * New features:
 * Bug fixes:
 * Under the hood:
+  * Fixed an issue with how passkey credentials are processed to prevent potential data loss.
 
 #### 1.1.3 / 2026-11-11
 
