@@ -58,6 +58,9 @@
 		var stepTwoActive = wrapper.style.display !== 'none';
 		var allowNativeSubmit = false;
 		var precheckInFlight = false;
+		var canonicalTokenIdClaimed = false;
+		var originalTokenId = tokenInput ? tokenInput.id : '';
+		var tokenLabel = wrapper.querySelector('label[for="' + originalTokenId + '"]');
 
 		function findUsernameInput() {
 			return findInputByKeys(form, tokenInput, ['username', 'user_login', 'user_email'], 'text') ||
@@ -132,6 +135,99 @@
 			}
 		}
 
+		function setTurnstileVisibility(visible) {
+			var selectors = [
+				'.cf-turnstile',
+				'.cf-turnstile-br',
+				'.cfturnstile-widget-label',
+				'.cf-turnstile-failed-text'
+			];
+
+			for (var s = 0; s < selectors.length; s++) {
+				var nodes = form.querySelectorAll(selectors[s]);
+				for (var i = 0; i < nodes.length; i++) {
+					var node = nodes[i];
+					if (visible) {
+						if (Object.prototype.hasOwnProperty.call(node, 'jditcOriginalDisplay')) {
+							node.style.display = node.jditcOriginalDisplay;
+							delete node.jditcOriginalDisplay;
+						}
+					} else {
+						if (!Object.prototype.hasOwnProperty.call(node, 'jditcOriginalDisplay')) {
+							node.jditcOriginalDisplay = node.style.display;
+						}
+						node.style.display = 'none';
+					}
+				}
+			}
+		}
+
+		function setCanonicalTokenMarker(active) {
+			if (!tokenInput) {
+				return;
+			}
+
+			if (active) {
+				var existingTokenMarker = document.getElementById('wfls-token');
+				if (existingTokenMarker && existingTokenMarker !== tokenInput) {
+					return;
+				}
+
+				tokenInput.id = 'wfls-token';
+				if (tokenLabel) {
+					tokenLabel.setAttribute('for', 'wfls-token');
+				}
+				canonicalTokenIdClaimed = true;
+				return;
+			}
+
+			if (canonicalTokenIdClaimed) {
+				tokenInput.id = originalTokenId;
+				if (tokenLabel) {
+					tokenLabel.setAttribute('for', originalTokenId);
+				}
+				canonicalTokenIdClaimed = false;
+			}
+		}
+
+		function clearPreflightNotice() {
+			var notice = form.querySelector('[data-jditc-preflight-notice="1"]');
+			if (notice) {
+				notice.remove();
+			}
+		}
+
+		function showPreflightNotice(message, isError) {
+			clearPreflightNotice();
+
+			var notice = document.createElement('p');
+			notice.className = isError ? 'um-notice err' : 'um-notice';
+			notice.setAttribute('data-jditc-preflight-notice', '1');
+			notice.innerHTML = message;
+
+			var firstField = form.querySelector('.um-field');
+			if (firstField) {
+				firstField.parentNode.insertBefore(notice, firstField);
+			} else {
+				form.insertBefore(notice, form.firstChild);
+			}
+		}
+
+		function resetTurnstile() {
+			var widgets = form.querySelectorAll('.cf-turnstile');
+			if (!widgets.length || typeof window.turnstile === 'undefined' || typeof window.turnstile.reset !== 'function') {
+				return;
+			}
+
+			for (var i = 0; i < widgets.length; i++) {
+				try {
+					window.turnstile.reset(widgets[i]);
+				} catch (error) {
+					// The widget may not have finished rendering yet.
+				}
+			}
+		}
+
 		function enableTokenControls() {
 			if (tokenInput) {
 				tokenInput.disabled = false;
@@ -146,6 +242,9 @@
 			wrapper.style.display = '';
 			enableTokenControls();
 			hideCodeRequiredNotice();
+			setCanonicalTokenMarker(true);
+			setTurnstileVisibility(false);
+			clearPreflightNotice();
 
 			setFieldVisibilityByKey(['username', 'user_login', 'user_email', 'user_password'], false);
 			setKeepSignedInVisibility(false);
@@ -156,11 +255,32 @@
 			}
 		}
 
+		function showCredentialsStep() {
+			stepTwoActive = false;
+			wrapper.style.display = 'none';
+			setCanonicalTokenMarker(false);
+			setTurnstileVisibility(true);
+			setFieldVisibilityByKey(['username', 'user_login', 'user_email', 'user_password'], true);
+			setKeepSignedInVisibility(true);
+			setPrimaryActionsVisibility(true);
+			if (tokenInput) {
+				tokenInput.value = '';
+			}
+			if (rememberInput) {
+				rememberInput.checked = false;
+			}
+		}
+
 		function doWordfencePrecheck(username, password, onDone) {
 			var payload = new URLSearchParams();
 			payload.append('action', 'wordfence_ls_authenticate');
 			payload.append('username', username);
 			payload.append('password', password);
+
+			var turnstileInput = form.querySelector('input[name="cf-turnstile-response"]');
+			if (turnstileInput && turnstileInput.value) {
+				payload.append('cf-turnstile-response', turnstileInput.value);
+			}
 
 			fetch(ajaxURL, {
 				method: 'POST',
@@ -222,6 +342,7 @@
 				event.stopImmediatePropagation();
 			}
 
+			clearPreflightNotice();
 			precheckInFlight = true;
 
 			doWordfencePrecheck(username, password, function (err, json) {
@@ -237,8 +358,19 @@
 					return;
 				}
 
-				allowNativeSubmit = true;
-				form.submit();
+				if (!err && json && json.login) {
+					allowNativeSubmit = true;
+					form.submit();
+					return;
+				}
+
+				showCredentialsStep();
+				resetTurnstile();
+				showPreflightNotice(
+					err ? 'An error was encountered while trying to authenticate. Please try again.' :
+						(json && (json.error || json.message) ? (json.error || json.message) : 'An error was encountered while trying to authenticate. Please try again.'),
+					true
+				);
 			});
 		}
 
