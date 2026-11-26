@@ -11,6 +11,11 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v7
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'npm'
     - name: Get Version Number
       uses: WyriHaximus/github-action-get-previous-tag@v2
       id: lasttag

@@ -47,6 +47,10 @@ ZIP_BASENAME="${PLUGIN_SLUG}-${TAG}.zip"
 ZIP_PATH="../${ZIP_BASENAME}"
 DISTIGNORE_FILE=".distignore"
 
+# Use the locked DOMPurify package to create the browser asset included in this build.
+npm ci --ignore-scripts
+npm run sync:dompurify
+
 # Mirror the release job's generated readme/assets before packaging.
 /bin/bash "${PWD}/.github/bin/make-readmetxt.sh"
 

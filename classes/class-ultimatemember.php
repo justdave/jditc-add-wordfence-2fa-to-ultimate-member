@@ -123,9 +123,23 @@ class UltimateMember {
 		$show_immediately      = is_string( $posted_token_value ) && '' !== $posted_token_value;
 		$remember_selected     = is_string( $posted_remember_value ) && '' !== $posted_remember_value;
 		$disabled_attr         = $show_immediately ? '' : 'disabled';
+
+		/**
+		 * Filters whether JDITC may continue when Turnstile returns the same token after a widget reset.
+		 *
+		 * JDITC normally requires a new token because the preflight request may have consumed the previous one.
+		 * Return true only for a controlled integration whose server-side verification explicitly accepts that repeated
+		 * token after a reset, such as a documented test service. This filter does not skip server-side verification
+		 * or make an already-spent live token valid.
+		 *
+		 * @param bool $allow_reused_turnstile_token Whether JDITC may accept the same token after a widget reset.
+		 */
+		$allow_reused_turnstile_token = (bool) apply_filters( 'jditc_w2fa_allow_reused_turnstile_token', false );
+		$reused_turnstile_token_data  = $allow_reused_turnstile_token ? '1' : '0';
+
 		$this->enqueue_wordfence_2fa_script();
 		?>
-		<div id="<?php echo esc_attr( $container_id ); ?>" class="um-field" data-key="wfls-token" data-jditc-w2fa="1" data-jditc-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+		<div id="<?php echo esc_attr( $container_id ); ?>" class="um-field" data-key="wfls-token" data-jditc-w2fa="1" data-jditc-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-jditc-reused-turnstile-token="<?php echo esc_attr( $reused_turnstile_token_data ); ?>"
 		<?php
 		if ( ! $show_immediately ) :
 			?>
@@ -260,18 +274,40 @@ class UltimateMember {
 	}
 
 	/**
-	 * Enqueue the login form script that toggles Wordfence 2FA UI behavior.
+	 * Enqueue the appropriate DOMPurify build and the login form script that toggles Wordfence 2FA UI behavior.
 	 */
 	private function enqueue_wordfence_2fa_script() {
-		$handle               = 'jditc-w2fa-um-login';
-		$script_relative_path = 'js/jditc-ultimatemember-login.js';
-		$script_absolute_path = trailingslashit( \JDITC_W2FA_UM_PATH ) . $script_relative_path;
-		$script_version       = file_exists( $script_absolute_path ) ? (string) filemtime( $script_absolute_path ) : '1.0';
+		$handle                  = 'jditc-w2fa-um-login';
+		$min                     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$dompurify_relative_path = 'js/vendor/dompurify/purify' . $min . '.js';
+		$script_relative_path    = 'js/jditc-ultimatemember-login.js';
+		$script_absolute_path    = trailingslashit( \JDITC_W2FA_UM_PATH ) . $script_relative_path;
+		$dompurify_handle        = 'jditc-w2fa-dompurify';
+		$dompurify_version_file  = trailingslashit( \JDITC_W2FA_UM_PATH ) . 'js/vendor/dompurify/version.php';
+		$dompurify_version       = '1.0';
+
+		if ( file_exists( $dompurify_version_file ) ) {
+			$dompurify_version = require $dompurify_version_file;
+		}
+
+		if ( ! is_string( $dompurify_version ) || '' === $dompurify_version ) {
+			$dompurify_version = '1.0';
+		}
+
+		wp_enqueue_script(
+			$dompurify_handle,
+			trailingslashit( \JDITC_W2FA_UM_URL ) . $dompurify_relative_path,
+			array(),
+			$dompurify_version,
+			true
+		);
+
+		$script_version = file_exists( $script_absolute_path ) ? (string) filemtime( $script_absolute_path ) : '1.0';
 
 		wp_enqueue_script(
 			$handle,
 			trailingslashit( \JDITC_W2FA_UM_URL ) . $script_relative_path,
-			array(),
+			array( $dompurify_handle ),
 			$script_version,
 			true
 		);

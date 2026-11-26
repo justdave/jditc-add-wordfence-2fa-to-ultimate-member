@@ -50,14 +50,18 @@
 
 		var tokenInput = wrapper.querySelector('input[name="wfls-token"]');
 		var rememberInput = wrapper.querySelector('input[name="wfls-remember-device"]');
+		var allowReusedTurnstileToken = wrapper.dataset.jditcReusedTurnstileToken === '1';
 		var ajaxURL = wrapper.getAttribute('data-jditc-ajax-url') || '';
 		if (!ajaxURL) {
 			return;
 		}
 
 		var stepTwoActive = wrapper.style.display !== 'none';
-		var allowNativeSubmit = false;
 		var precheckInFlight = false;
+		var twoFactorTurnstileWidget = null;
+		var canonicalTokenIdClaimed = false;
+		var originalTokenId = tokenInput ? tokenInput.id : '';
+		var tokenLabel = wrapper.querySelector('label[for="' + originalTokenId + '"]');
 
 		function findUsernameInput() {
 			return findInputByKeys(form, tokenInput, ['username', 'user_login', 'user_email'], 'text') ||
@@ -132,6 +136,208 @@
 			}
 		}
 
+		function setCanonicalTokenMarker(active) {
+			if (!tokenInput) {
+				return;
+			}
+
+			if (active) {
+				var existingTokenMarker = document.getElementById('wfls-token');
+				if (existingTokenMarker && existingTokenMarker !== tokenInput) {
+					return;
+				}
+
+				tokenInput.id = 'wfls-token';
+				if (tokenLabel) {
+					tokenLabel.setAttribute('for', 'wfls-token');
+				}
+				canonicalTokenIdClaimed = true;
+				return;
+			}
+
+			if (canonicalTokenIdClaimed) {
+				tokenInput.id = originalTokenId;
+				if (tokenLabel) {
+					tokenLabel.setAttribute('for', originalTokenId);
+				}
+				canonicalTokenIdClaimed = false;
+			}
+		}
+
+		function clearPreflightNotice() {
+			var notice = form.querySelector('[data-jditc-preflight-notice="1"]');
+			if (notice) {
+				notice.remove();
+			}
+		}
+
+		function sanitizeNotice(message) {
+			var noticeMessage = typeof message === 'string' ? message : '';
+			var purifier      = window['DOMPurify'];
+			var fallback      = document.createDocumentFragment();
+
+			fallback.textContent = noticeMessage;
+			if (!purifier || typeof purifier.sanitize !== 'function' || purifier.isSupported === false) {
+				return fallback;
+			}
+
+			try {
+				var sanitizedContent = purifier.sanitize(
+					noticeMessage.replace(/\r\n?|\n/g, '<br>'),
+					{
+						ALLOWED_TAGS: [ 'a', 'br', 'em', 'strong' ],
+						ALLOWED_ATTR: [ 'href' ],
+						ALLOW_DATA_ATTR: false,
+						ALLOW_ARIA_ATTR: false,
+						ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|\/(?!\/)|#|(?:\.\.?\/)|(?:[^\s:/?#]+(?:[/?#]|$)))/i,
+						RETURN_DOM_FRAGMENT: true
+					}
+				);
+				return sanitizedContent && sanitizedContent.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? sanitizedContent : fallback;
+			} catch (error) {
+				return fallback;
+			}
+		}
+
+		function showPreflightNotice(message, isError) {
+			clearPreflightNotice();
+
+			var notice = document.createElement('p');
+			notice.className = isError ? 'um-notice err' : 'um-notice warning';
+			notice.setAttribute('data-jditc-preflight-notice', '1');
+			notice.style.whiteSpace = 'pre-line';
+			notice.appendChild(sanitizeNotice(message));
+
+			var firstField = form.querySelector('.um-field');
+			if (firstField) {
+				firstField.parentNode.insertBefore(notice, firstField);
+			} else {
+				form.insertBefore(notice, form.firstChild);
+			}
+		}
+
+		function setTurnstileVisibility(visible) {
+			// If various integrations added multiple Turnstile widgets to the same form, keep them visible.
+			if (!visible && form.querySelectorAll('.cf-turnstile').length > 1) {
+				return;
+			}
+
+			var nodes = form.querySelectorAll([
+				'.cf-turnstile',
+				'.cf-turnstile-br',
+				'.cfturnstile-widget-label',
+				'.cf-turnstile-failed-text'
+			].join(', '));
+
+			for (var i = 0; i < nodes.length; i++) {
+				var node = nodes[i];
+				if (visible) {
+					if (Object.prototype.hasOwnProperty.call(node, 'jditcOriginalDisplay')) {
+						node.style.display = node.jditcOriginalDisplay;
+						delete node.jditcOriginalDisplay;
+					}
+				} else {
+					if (!Object.prototype.hasOwnProperty.call(node, 'jditcOriginalDisplay')) {
+						node.jditcOriginalDisplay = node.style.display;
+					}
+					node.style.display = 'none';
+				}
+			}
+		}
+
+		function getTurnstileInput() {
+			// PHP uses the last submitted response when duplicate fields are present.
+			var controls = form.elements;
+			for (var i = controls.length - 1; i >= 0; i--) {
+				var control = controls[i];
+				if (control.tagName === 'INPUT' && control.type === 'hidden' && control.name === 'cf-turnstile-response' && !control.matches(':disabled')) {
+					return control;
+				}
+			}
+
+			return null;
+		}
+
+		function getTurnstileWidget(input) {
+			return input ? input.closest('.cf-turnstile') : null;
+		}
+
+		function resetTurnstile(widget) {
+			if (!widget || !window.turnstile || typeof window.turnstile.reset !== 'function') {
+				return false;
+			}
+
+			try {
+				window.turnstile.reset(widget);
+				return true;
+			} catch (error) {
+				return false;
+			}
+		}
+
+		// A successful preflight can consume the token; the final UM POST needs a fresh one.
+		function refreshTurnstileForFinalSubmit(previousToken, widget, onDone) {
+			if (!previousToken) {
+				onDone(true);
+				return;
+			}
+
+			var input = getTurnstileInput();
+			if (!widget || getTurnstileWidget(input) !== widget || !resetTurnstile(widget)) {
+				onDone(false);
+				return;
+			}
+
+			var startedAt = Date.now();
+			var noticeShown = false;
+			var timer = window.setInterval(function () {
+				var refreshedInput = getTurnstileInput();
+				if (getTurnstileWidget(refreshedInput) === widget && refreshedInput.value &&
+					(refreshedInput.value !== previousToken || allowReusedTurnstileToken)) {
+					window.clearInterval(timer);
+					onDone(true);
+				} else if (Date.now() - startedAt >= 120000) {
+					window.clearInterval(timer);
+					onDone(false);
+				} else if (!noticeShown && Date.now() - startedAt >= 3000) {
+					noticeShown = true;
+					showPreflightNotice('Security check in progress. Please complete it if prompted.', false);
+				}
+			}, 100);
+		}
+
+		function turnstileReadyForTwoFactor() {
+			if (!twoFactorTurnstileWidget) {
+				return true;
+			}
+
+			var input = getTurnstileInput();
+			var widget = getTurnstileWidget(input);
+			var available = twoFactorTurnstileWidget.isConnected && (!widget || widget === twoFactorTurnstileWidget) &&
+				window.turnstile && typeof window.turnstile.reset === 'function';
+			var expired = false;
+			if (available && widget && typeof window.turnstile.isExpired === 'function') {
+				try {
+					expired = window.turnstile.isExpired(widget);
+				} catch (error) {
+					// The server remains responsible for validating the submitted token.
+				}
+			}
+
+			if (available && widget && input.value && !expired) {
+				return true;
+			}
+
+			setTurnstileVisibility(true);
+			if (expired) {
+				resetTurnstile(widget);
+			}
+
+			showPreflightNotice(available ? 'Please complete the security check, then try again.' :
+				'We couldn’t load the security check. Please refresh the page and try again.', !available);
+			return false;
+		}
+
 		function enableTokenControls() {
 			if (tokenInput) {
 				tokenInput.disabled = false;
@@ -146,6 +352,11 @@
 			wrapper.style.display = '';
 			enableTokenControls();
 			hideCodeRequiredNotice();
+			setCanonicalTokenMarker(true);
+
+			var turnstileInput = getTurnstileInput();
+			setTurnstileVisibility(!turnstileInput || !turnstileInput.value);
+			clearPreflightNotice();
 
 			setFieldVisibilityByKey(['username', 'user_login', 'user_email', 'user_password'], false);
 			setKeepSignedInVisibility(false);
@@ -156,11 +367,35 @@
 			}
 		}
 
+		function showCredentialsStep() {
+			stepTwoActive = false;
+			twoFactorTurnstileWidget = null;
+			wrapper.style.display = 'none';
+			setCanonicalTokenMarker(false);
+			setTurnstileVisibility(true);
+			setFieldVisibilityByKey(['username', 'user_login', 'user_email', 'user_password'], true);
+			setKeepSignedInVisibility(true);
+			setPrimaryActionsVisibility(true);
+			if (tokenInput) {
+				tokenInput.value = '';
+			}
+			if (rememberInput) {
+				rememberInput.checked = false;
+			}
+		}
+
 		function doWordfencePrecheck(username, password, onDone) {
 			var payload = new URLSearchParams();
 			payload.append('action', 'wordfence_ls_authenticate');
 			payload.append('username', username);
 			payload.append('password', password);
+
+			var turnstileInput = getTurnstileInput();
+			var turnstileToken = turnstileInput ? turnstileInput.value : '';
+			var turnstileWidget = getTurnstileWidget(turnstileInput);
+			if (turnstileToken) {
+				payload.append('cf-turnstile-response', turnstileToken);
+			}
 
 			fetch(ajaxURL, {
 				method: 'POST',
@@ -177,68 +412,85 @@
 					return resp.json();
 				})
 				.then(function (json) {
-					onDone(null, json);
-				})
-				.catch(function (err) {
-					onDone(err);
+					onDone(null, json, turnstileToken, turnstileWidget);
+				}, function (err) {
+					onDone(err, null, turnstileToken, turnstileWidget);
 				});
 		}
 
-		function runPrecheckAndMaybeSubmit(event) {
-			if (allowNativeSubmit) {
-				allowNativeSubmit = false;
-				return;
+		function stopSubmitEvent(event) {
+			if (event) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
 			}
+		}
 
+		function runPrecheckAndMaybeSubmit(event) {
 			if (stepTwoActive) {
-				allowNativeSubmit = true;
+				if (!turnstileReadyForTwoFactor()) {
+					stopSubmitEvent(event);
+				}
 				return;
 			}
 
 			if (precheckInFlight) {
-				if (event) {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				}
+				stopSubmitEvent(event);
 				return;
 			}
 
 			var usernameInput = findUsernameInput();
 			var passwordInput = findPasswordInput();
 			if (!usernameInput || !passwordInput) {
-				allowNativeSubmit = true;
 				return;
 			}
 
 			var username = usernameInput.value || '';
 			var password = passwordInput.value || '';
 			if (!username || !password) {
-				allowNativeSubmit = true;
 				return;
 			}
 
-			if (event) {
-				event.preventDefault();
-				event.stopImmediatePropagation();
-			}
+			stopSubmitEvent(event);
 
+			clearPreflightNotice();
 			precheckInFlight = true;
 
-			doWordfencePrecheck(username, password, function (err, json) {
+			doWordfencePrecheck(username, password, function (err, json, turnstileToken, turnstileWidget) {
+				var needsTwoFactor = !err && json && (json.two_factor_required ||
+					(typeof json.error === 'string' && /CODE REQUIRED/i.test(json.error)));
+				if (needsTwoFactor || (!err && json && json.login)) {
+					refreshTurnstileForFinalSubmit(turnstileToken, turnstileWidget, function (refreshed) {
+						precheckInFlight = false;
+						if (!refreshed) {
+							showCredentialsStep();
+							resetTurnstile(turnstileWidget);
+							showPreflightNotice('We couldn’t complete the security check. Please refresh the page and try again.', true);
+							return;
+						}
+
+						clearPreflightNotice();
+						if (needsTwoFactor) {
+							twoFactorTurnstileWidget = turnstileToken ? turnstileWidget : null;
+							showTokenStep();
+						} else {
+							form.submit();
+						}
+					});
+
+					return;
+				}
+
 				precheckInFlight = false;
-
-				if (!err && json && json.two_factor_required) {
-					showTokenStep();
-					return;
+				showCredentialsStep();
+				if (turnstileToken) {
+					resetTurnstile(turnstileWidget);
 				}
 
-				if (!err && json && typeof json.error === 'string' && /CODE REQUIRED/i.test(json.error)) {
-					showTokenStep();
-					return;
-				}
-
-				allowNativeSubmit = true;
-				form.submit();
+				showPreflightNotice(
+					err ? 'An error was encountered while trying to authenticate. Please try again.' :
+						(json && (json.error || json.message) ? (json.error || json.message) : 'An error was encountered while trying to authenticate. Please try again.'),
+					true
+				);
 			});
 		}
 

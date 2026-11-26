@@ -1,0 +1,11 @@
+{
+  "name": "jditc-add-wordfence-2fa-to-ultimate-member-build-tools",
+  "private": true,
+  "description": "Build tooling for JDITC Add Wordfence 2FA to Ultimate Member.",
+  "scripts": {
+    "sync:dompurify": "node nondist/sync-dompurify.js"
+  },
+  "devDependencies": {
+    "dompurify": "3.5.0"
+  }
+}

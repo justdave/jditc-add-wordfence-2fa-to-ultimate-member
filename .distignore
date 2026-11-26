@@ -7,6 +7,7 @@
 /.distignore
 /.git*
 /.markdownlint.json
+/.nvmrc
 /.vscode
 /.wordpress-org
 /CHANGES.md
@@ -14,7 +15,10 @@
 /composer.json
 /composer.lock
 /docker_tag
+/node_modules
 /nondist
 /output.log
+/package.json
+/package-lock.json
 /phpcs.xml.dist
 /vendor
