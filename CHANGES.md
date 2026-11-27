@@ -2,6 +2,7 @@
 
 * New features:
 * Bug fixes:
+  * Preserved Wordfence passkey error messages.
 * Under the hood:
   * Fixed an issue with how passkey credentials are processed to prevent potential data loss.
 

@@ -325,6 +325,10 @@
 		};
 	}
 
+	function getAJAXResponseData(json) {
+		return json && json.data && typeof json.data === 'object' ? json.data : json;
+	}
+
 	function attachPasskeyControl(wrapper) {
 		if (wrapper.dataset.jditcPasskeyInitialized === '1') {
 			return;
@@ -366,7 +370,7 @@
 			})
 				.then(function (response) {
 					return response.json().then(function (json) {
-						return json.data && json.success ? json.data : json;
+						return getAJAXResponseData(json);
 					});
 				})
 				.then(function (beginResponse) {
@@ -393,7 +397,7 @@
 				})
 				.then(function (response) {
 					return response.json().then(function (json) {
-						return json.data && json.success ? json.data : json;
+						return getAJAXResponseData(json);
 					});
 				})
 				.then(function (finishResponse) {
